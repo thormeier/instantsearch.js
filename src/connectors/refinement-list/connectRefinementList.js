@@ -205,7 +205,8 @@ export default function connectRefinementList(renderFn, unmountFn) {
           createURL,
           helperSpecializedSearchFacetValues,
           refine,
-          instantSearchInstance
+          instantSearchInstance,
+          isShowingMore
         );
 
       renderFn(
@@ -219,9 +220,10 @@ export default function connectRefinementList(renderFn, unmountFn) {
           canRefine: isFromSearch || items.length > 0,
           widgetParams,
           isShowingMore,
-          canToggleShowMore: showMoreLimit
-            ? isShowingMore || !hasExhaustiveItems
-            : false,
+          canToggleShowMore:
+            showMoreLimit && !isFromSearch
+              ? isShowingMore || !hasExhaustiveItems
+              : false,
           toggleShowMore,
           hasExhaustiveItems,
         },
@@ -233,12 +235,14 @@ export default function connectRefinementList(renderFn, unmountFn) {
     let searchForFacetValues;
     let refine;
 
-    const createSearchForFacetValues = helper => (
+    /* eslint-disable max-params */
+    const createSearchForFacetValues = (helper, toggleShowMore) => (
       state,
       createURL,
       helperSpecializedSearchFacetValues,
       toggleRefinement,
-      instantSearchInstance
+      instantSearchInstance,
+      isShowingMore
     ) => query => {
       if (query === '' && lastResultsFromMainSearch) {
         // render with previous data from the helper.
@@ -252,6 +256,8 @@ export default function connectRefinementList(renderFn, unmountFn) {
           isFirstSearch: false,
           instantSearchInstance,
           hasExhaustiveItems: false, // SFFV should not be used with show more
+          toggleShowMore, // and yet it will be
+          isShowingMore, // so we need to restore in the state of show more as well
         });
       } else {
         const tags = {
@@ -288,10 +294,12 @@ export default function connectRefinementList(renderFn, unmountFn) {
               isFirstSearch: false,
               instantSearchInstance,
               hasExhaustiveItems: false, // SFFV should not be used with show more
+              isShowingMore,
             });
           });
       }
     };
+    /* eslint-enable max-params */
 
     return {
       isShowingMore: false,
@@ -346,7 +354,10 @@ export default function connectRefinementList(renderFn, unmountFn) {
         refine = facetValue =>
           helper.toggleRefinement(attributeName, facetValue).search();
 
-        searchForFacetValues = createSearchForFacetValues(helper);
+        searchForFacetValues = createSearchForFacetValues(
+          helper,
+          this.cachedToggleShowMore
+        );
 
         render({
           items: [],

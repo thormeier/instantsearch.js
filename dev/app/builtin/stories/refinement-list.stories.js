@@ -89,6 +89,30 @@ export default () => {
       })
     )
     .add(
+      'with show more and search',
+      wrapWithHits(container => {
+        window.search.addWidget(
+          instantsearch.widgets.refinementList({
+            container,
+            attributeName: 'brand',
+            operator: 'or',
+            limit: 3,
+            templates: {
+              header: 'Brands with show more',
+            },
+            showMore: {
+              templates: {
+                active: '<button>Show less</button>',
+                inactive: '<button>Show more</button>',
+              },
+              limit: 10,
+            },
+            searchForFacetValues: true,
+          })
+        );
+      })
+    )
+    .add(
       'with operator `and`',
       wrapWithHits(container => {
         window.search.addWidget(
